@@ -1,0 +1,56 @@
+server:
+  port: 8080
+#  servlet:
+#    context-path: /erp
+
+#mybatis
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: null
+    auto-mapping-behavior: full
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.erp.model
+
+#logging
+logging:
+  level:
+    com.erp.mapper: debug
+    org:
+      springframework:
+        boot:
+          autoconfigure: ERROR
+
+spring:
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://122.112.175.237:3306/erp?characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      username: root
+      password: root
+      stat-view-servlet:
+        url-pattern: /druid/*
+        reset-enable: true
+        login-username: druid
+        login-password: druid
+      web-stat-filter:
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*"
+  #redis
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    timeout: 3000
+    password:
+jedis:
+  #  lianjiechi
+  pool:
+
+    max-active: 8
+
+    max-wait: 1
+
+    max-idle: 8
+
+    min-idle: 0

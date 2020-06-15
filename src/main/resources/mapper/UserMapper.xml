@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.erp.mapper.UserMapper">
+
+    <resultMap id="userMap" type="com.erp.model.User">
+    </resultMap>
+
+    <select id="getList" resultMap="userMap">
+      SELECT u.* FROM user u
+    </select>
+    <select id="selectApproveUser" resultMap="userMap">
+      SELECT u.* FROM messageInfo u where status='未审核' and processInstanceId='';
+    </select>
+
+    <select id="selectUserCount" resultType="java.lang.Integer">
+      SELECT count(*)  FROM messageInfo where status='未审核' and processInstanceId='';
+    </select>
+
+    <update id="updateStatus" parameterType="com.erp.model.User">
+        update messageInfo set
+        <if test="status!=null">status=#{status}</if>
+        where processInstanceId=#{processInstanceId}
+    </update>
+
+    <update id="updateProcessInstanceId" parameterType="com.erp.model.User">
+        update messageInfo set
+        <if test="processInstanceId!=null">processInstanceId=#{processInstanceId}</if>
+        where id=#{id}
+    </update>
+</mapper>
