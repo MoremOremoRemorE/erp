@@ -18,4 +18,6 @@ public interface UserService {
     int updateStatus(User user);
 
     int updateProcessInstanceId(User user1);
+
+    Boolean returnResult(String plainText);
 }

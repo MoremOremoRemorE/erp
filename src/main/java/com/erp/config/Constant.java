@@ -49,6 +49,15 @@ public class Constant {
      * 坯布销售订单
      */
     public static final String PRCESS_CODE_ROUGHORDINF ="PROC-166BF5C9-2999-41CF-BA61-43901FB40ED7";
+
+    /**
+     * 坯布采购变更单
+     */
+    public static final String PRCESS_CODE_ROUGHODDVARYINF ="PROC-F1E6CF7C-B4B3-4E55-B1D4-A0A24177EEC4";
+    /**
+     * 坯布采购订单
+     */
+    public static final String PRCESS_CODE_ROUGHODDINF ="PROC-0CABEDAD-6A08-449C-BBF5-4D2F8F03AF74";
     /**
      * 回调host
      */

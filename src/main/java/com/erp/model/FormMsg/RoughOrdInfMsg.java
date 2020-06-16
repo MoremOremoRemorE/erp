@@ -1,89 +1,14 @@
-package com.erp.model;
+package com.erp.model.FormMsg;
 
 
-import com.dingtalk.api.DefaultDingTalkClient;
-import com.dingtalk.api.request.OapiProcessinstanceCreateRequest;
-import com.dingtalk.api.response.OapiProcessinstanceCreateResponse;
-import com.erp.config.Constant;
-import com.erp.config.URLConstant;
-import com.erp.service.RoughOrdInfService;
-import com.erp.util.AccessTokenUtil;
-import com.erp.util.LogFormatter;
-import com.erp.util.ServiceResult;
-import com.erp.util.ServiceResultCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.erp.model.ProcessInstanceInputVO;
+import com.erp.model.RoughOrdInf;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoughOrdInfMsg {
-    private static final Logger bizLogger = LoggerFactory.getLogger(com.erp.controller.ProcessinstanceController.class);
-    @Autowired
-    RoughOrdInfService roughOrdInfService;
-    /**
-     * 坯布销售订单处理
-     */
-    public ServiceResult<String> startProcessInstanceRoughOrdInf() {
-        try {
-            DefaultDingTalkClient client = new DefaultDingTalkClient(URLConstant.URL_PROCESSINSTANCE_START);
-            /**
-             * 在这里查询数据库，从数据库中拿到和钉钉对接的具体的所有人的数据，比如userId，userName，deptId等信息
-             * 可能需要查询所有的表，判断是否有数据
-             */
-            //查询坯布销售订单表中符合条件的数据
-            int count = roughOrdInfService.selectRoughOrdInfCount();
-            if(count>0){
-                //查询对应的审核抄送等信息
-                List<RoughOrdInf> roughOrdInfList = roughOrdInfService.selectApproveUser();
-                for(RoughOrdInf roughOrdInf:roughOrdInfList){
-                    ProcessInstanceInputVO processInstance = getProcessInstanceInputVORoughOrdInf(roughOrdInf);
-                    OapiProcessinstanceCreateRequest request = new OapiProcessinstanceCreateRequest();
-                    request.setProcessCode(Constant.PRCESS_CODE_ROUGHORDINF);
-                    request.setFormComponentValues(processInstance.generateForms());
-
-                    //要和设计的相对应，审批人和抄送人什么的需要在这个进行传参
-                    //审批人设置 方闵：2936396644845660
-                    //	request.setApprovers("2936396644845660,173940214337028944");
-                    request.setApprovers(processInstance.getOriginatorUserId());
-                    request.setOriginatorUserId(processInstance.getOriginatorUserId());
-
-                    request.setDeptId(processInstance.getDeptId());
-                    //前面方闵，后面金超群,测试用
-                    //	request.setCcList("2936396644845660,173940214337028944");
-                    request.setCcList(processInstance.getOriginatorUserId());
-                    request.setCcPosition("FINISH");
-
-                    OapiProcessinstanceCreateResponse response = client.execute(request, AccessTokenUtil.getToken());
-
-                    if (response.getErrcode().longValue() != 0) {
-                        return ServiceResult.failure(String.valueOf(response.getErrorCode()), response.getErrmsg());
-                    }
-                    RoughOrdInf roughOrdInf1 = new RoughOrdInf();
-                    roughOrdInf1.setProcessInstanceId(response.getProcessInstanceId());
-                    //表中唯一确定这条数据的字段，id之类的
-                    roughOrdInf1.setId(roughOrdInf1.getId());
-                    //在成功后回写数据库，将唯一的审批实例id写进去
-                    int updateProcessInstanceId = roughOrdInfService.updateProcessInstanceIdRoughOrdInf(roughOrdInf1);
-                    if(updateProcessInstanceId>0){
-                        return ServiceResult.success(response.getProcessInstanceId());
-                    }else {
-                        return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
-                    }
-                }
-            }else{
-                bizLogger.info("未找到坯布销售订单表中的数据");
-            }
-        }catch (Exception e){
-            String errLog = LogFormatter.getKVLogData(LogFormatter.LogEvent.END,
-                    LogFormatter.KeyValue.getNew("processInstance", "出错了"));
-            bizLogger.info(errLog,e);
-            return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
-        }
-        return ServiceResult.success("success");
-    }
-
     /**
      * 坯布销售订单模板
      * @param roughOrdInf

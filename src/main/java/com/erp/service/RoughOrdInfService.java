@@ -17,4 +17,6 @@ public interface RoughOrdInfService {
     int updateProcessInstanceIdRoughOrdInf(RoughOrdInf roughOrdInf1);
 
     int updateStatusRoughOrdInf(RoughOrdInf roughOrdInf);
+
+    Boolean returnResult(String plainText);
 }

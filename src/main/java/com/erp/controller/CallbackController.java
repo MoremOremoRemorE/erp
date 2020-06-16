@@ -14,6 +14,7 @@ import com.dingtalk.oapi.lib.aes.Utils;
 import com.erp.model.RoughOrdInf;
 import com.erp.model.Test;
 import com.erp.model.User;
+import com.erp.service.RoughOddVaryInfService;
 import com.erp.service.RoughOrdInfService;
 import com.erp.service.TestService;
 import com.erp.service.UserService;
@@ -39,6 +40,8 @@ public class CallbackController {
     private TestService testService;
     @Autowired
     private RoughOrdInfService roughOrdInfService;
+    @Autowired
+    private RoughOddVaryInfService roughOddVaryInfService;
 
     private static final Logger bizLogger = LoggerFactory.getLogger("BIZ_CALLBACKCONTROLLER");
     private static final Logger mainLogger = LoggerFactory.getLogger(com.erp.controller.CallbackController.class);
@@ -58,24 +61,6 @@ public class CallbackController {
      */
     private static final String BPMS_INSTANCE_CHANGE = "bpms_instance_change";
 
-    /**
-     * 新增的测试的回调(审批实例回调)
-     */
-    private static final String BPMS_INSTANCE_CHANGE_TEST = "bpms_instance_change_test";
-
-    /**
-     * 新增的测试的回调(审批任务回调)
-     */
-    private static final String BPMS_TASK_CHANGE_TEST = "bpms_task_change_test";
-    /**
-     * 坯布销售订单回调(审批实例回调)
-     */
-    private static final String BPMS_INSTANCE_CHANGE_ROUGHORDINF = "bpms_instance_change_roughordinf";
-
-    /**
-     * 坯布销售订单回调(审批任务回调)
-     */
-    private static final String BPMS_TASK_CHANGE_ROUGHORDINF = "bpms_task_change_roughordinf";
     /**
      * 相应钉钉回调时的值
      */
@@ -103,121 +88,61 @@ public class CallbackController {
             //审批结果。同意：agree;拒绝：refuse;转送：redirect(当前值只有bpms_task_change能够接收到)
             String result=obj.getString("result");
 
+            //异步业务操作，防止响应时间过长，钉钉重复推送回调。(后期想一下用多线程怎么实现)
             //根据回调数据类型做不同的业务处理
             String eventType = obj.getString("EventType");
-            if (BPMS_TASK_CHANGE.equals(eventType)) {
-                bizLogger.info("收到审批任务进度更新: " + plainText);
-                //todo: 实现审批的业务逻辑，如发消息
-            } else if (BPMS_INSTANCE_CHANGE.equals(eventType)) {
-                bizLogger.info("收到审批实例状态更新: " + plainText);
-                //todo: 实现审批的业务逻辑，如发消息
-                if (obj.containsKey("result") && obj.getString("result").equals("agree")) {
-                    bizLogger.info("同意了审核");
-                    bizLogger.info("-------------------------开始回写数据库---------------------------------------");
-                    User user = new User();
-                    user.setStatus("同意审核");
-                    user.setProcessInstanceId(processInstanceId);
-                    int count = userService.updateStatus(user);
-                    if(count>0){
-                        bizLogger.info("回写数据库成功");
-                    }else {
-                        bizLogger.info("回写数据库失败");
-                    }
-                    bizLogger.info("-------------------------回写数据库结束---------------------------------------");
-                    MessageUtil.sendMessageToOriginator(processInstanceId);
-                }else if(obj.containsKey("result") && obj.getString("result").equals("refuse")) {
-                    bizLogger.info("拒绝了审核");
-                    bizLogger.info("-------------------------开始回写数据库---------------------------------------");
-                    User user = new User();
-                    user.setStatus("拒绝审核");
-                    user.setProcessInstanceId(processInstanceId);
-                    int count = userService.updateStatus(user);
-                    if (count > 0) {
-                        bizLogger.info("回写数据库成功");
-                    } else {
-                        bizLogger.info("回写数据库失败");
-                    }
-                    bizLogger.info("-------------------------回写数据库结束---------------------------------------");
-                    MessageUtil.sendMessageToOriginator(processInstanceId);
-                }
-
-                if(BPMS_TASK_CHANGE_TEST.equals(eventType)){
-                    bizLogger.info("收到审批任务进度更新---TEST: " + plainText);
-                }else if (BPMS_INSTANCE_CHANGE_TEST.equals(eventType)) {
-                    bizLogger.info("收到审批实例状态更新----TEST: " + plainText);
-                    if (obj.containsKey("result") && obj.getString("result").equals("agree")) {
-                        bizLogger.info("同意了审核--TEST");
-                        bizLogger.info("-------------------------开始回写数据库--TEST---------------------------------------");
-                        Test test = new Test();
-                        test.setStatus("同意审核--TEST");
-                        test.setProcessInstanceId(processInstanceId);
-                        int count = testService.updateStatusTest(test);
-                        if (count > 0) {
-                            bizLogger.info("回写数据库成功---TEST");
-                        } else {
-                            bizLogger.info("回写数据库失败---TEST");
+            if (eventType!=null&&!"check_url".equals(eventType) && "bpms_instance_change".equals(eventType)) {
+                switch (obj.getString("processCode")) {
+                    //第一个测试模板
+                    case Constant.PROCESS_CODE:
+                        bizLogger.info("-------------------------开始回写数据库---------------------------------------");
+                        Boolean bool = userService.returnResult(plainText);
+                        if(bool){
+                            bizLogger.info("回写数据库成功");
+                        }else {
+                            bizLogger.info("回写数据库失败");
                         }
-                        bizLogger.info("-------------------------回写数据库结束--TEST---------------------------------------");
-                        MessageUtil.sendMessageToOriginator(processInstanceId);
-                    } else if (obj.containsKey("result") && obj.getString("result").equals("refuse")) {
-                        bizLogger.info("拒绝了审核--TEST");
+                        bizLogger.info("-------------------------回写数据库结束---------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_TEST:
+                        //测试模板二
                         bizLogger.info("-------------------------开始回写数据库--TEST---------------------------------------");
-                        Test test = new Test();
-                        test.setStatus("拒绝审核--TEST");
-                        test.setProcessInstanceId(processInstanceId);
-                        int count = testService.updateStatusTest(test);
-                        if (count > 0) {
+                        Boolean bool1 = testService.returnResult(plainText);
+                        if(bool1){
                             bizLogger.info("回写数据库成功--TEST");
-                        } else {
+                        }else {
                             bizLogger.info("回写数据库失败--TEST");
                         }
-                        bizLogger.info("-------------------------回写数据库结束--TEST---------------------------------------");
-                        MessageUtil.sendMessageToOriginator(processInstanceId);
-                    }
-                }
-
-                /**
-                 * 坯布销售订单审批完成回写
-                 */
-                if(BPMS_TASK_CHANGE_ROUGHORDINF.equals(eventType)){
-                    bizLogger.info("收到审批任务进度更新---坯布销售订单: " + plainText);
-                }else if (BPMS_INSTANCE_CHANGE_ROUGHORDINF.equals(eventType)) {
-                    bizLogger.info("收到审批实例状态更新----坯布销售订单: " + plainText);
-                    if (obj.containsKey("result") && obj.getString("result").equals("agree")) {
-                        bizLogger.info("同意了审核--坯布销售订单");
-                        bizLogger.info("-------------------------开始回写数据库--同意--坯布销售订单---------------------------------------");
-                        RoughOrdInf roughOrdInf = new RoughOrdInf();
-                        //数据库中该条数据审核状态变为审核通过
-                        roughOrdInf.setState("同意审核--坯布销售订单");
-                        roughOrdInf.setProcessInstanceId(processInstanceId);
-                        int count = roughOrdInfService.updateStatusRoughOrdInf(roughOrdInf);
-                        if (count > 0) {
-                            bizLogger.info("回写数据库成功---坯布销售订单");
-                        } else {
-                            bizLogger.info("回写数据库失败---坯布销售订单");
+                        bizLogger.info("-------------------------回写数据库结束--TEST--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_ROUGHORDINF:
+                          //坯布销售订单
+                          bizLogger.info("-------------------------开始回写数据库--坯布销售订单---------------------------------------");
+                          Boolean bool2 = roughOrdInfService.returnResult(plainText);
+                          if(bool2){
+                              bizLogger.info("回写数据库成功--坯布销售订单");
+                          }else {
+                              bizLogger.info("回写数据库失败--坯布销售订单");
+                          }
+                          bizLogger.info("-------------------------回写数据库结束--坯布销售订单--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_ROUGHODDVARYINF:
+                        //坯布采购变更单
+                        bizLogger.info("-------------------------开始回写数据库--坯布采购变更单---------------------------------------");
+                        Boolean bool3 = roughOddVaryInfService.returnResult(plainText);
+                        if(bool3){
+                            bizLogger.info("回写数据库成功--坯布采购变更单");
+                        }else {
+                            bizLogger.info("回写数据库失败--坯布采购变更单");
                         }
-                        bizLogger.info("-------------------------回写数据库结束--同意--坯布销售订单---------------------------------------");
-                        MessageUtil.sendMessageToOriginator(processInstanceId);
-                    } else if (obj.containsKey("result") && obj.getString("result").equals("refuse")) {
-                        bizLogger.info("拒绝了审核--坯布销售订单");
-                        bizLogger.info("-------------------------开始回写数据库--拒绝-坯布销售订单---------------------------------------");
-                        RoughOrdInf roughOrdInf = new RoughOrdInf();
-                        roughOrdInf.setState("拒绝审核--坯布销售订单");
-                        roughOrdInf.setProcessInstanceId(processInstanceId);
-                        int count = roughOrdInfService.updateStatusRoughOrdInf(roughOrdInf);
-                        if (count > 0) {
-                            bizLogger.info("回写数据库成功--坯布销售订单");
-                        } else {
-                            bizLogger.info("回写数据库失败--坯布销售订单");
-                        }
-                        bizLogger.info("-------------------------回写数据库结束--拒绝--坯布销售订单---------------------------------------");
-                        MessageUtil.sendMessageToOriginator(processInstanceId);
-                    }
+                        bizLogger.info("-------------------------回写数据库结束--坯布采购变更单--------------------------------------");
+                        break;
+                    default:
+                        break;
                 }
             } else {
-                // 其他类型事件处理
+                bizLogger.info("^_^--审批任务回调--^_^");
             }
-
             // 返回success的加密信息表示回调处理成功
             return dingTalkEncryptor.getEncryptedMap(CALLBACK_RESPONSE_SUCCESS, System.currentTimeMillis(), Utils.getRandomStr(8));
         } catch (Exception e) {

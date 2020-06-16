@@ -13,13 +13,13 @@ mybatis-plus:
   type-aliases-package: com.erp.model
 
 #logging
-logging:
-  level:
-    com.erp.mapper: debug
-    org:
-      springframework:
-        boot:
-          autoconfigure: ERROR
+#logging:
+#  level:
+#    com.erp.mapper: debug
+#    org:
+#      springframework:
+#        boot:
+#          autoconfigure: ERROR
 
 spring:
   datasource:
