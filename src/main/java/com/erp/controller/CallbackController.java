@@ -11,15 +11,9 @@ import com.dingtalk.api.request.OapiCallBackRegisterCallBackRequest;
 import com.dingtalk.api.response.OapiCallBackRegisterCallBackResponse;
 import com.dingtalk.oapi.lib.aes.DingTalkEncryptor;
 import com.dingtalk.oapi.lib.aes.Utils;
-import com.erp.model.RoughOrdInf;
-import com.erp.model.Test;
-import com.erp.model.User;
-import com.erp.service.RoughOddVaryInfService;
-import com.erp.service.RoughOrdInfService;
-import com.erp.service.TestService;
-import com.erp.service.UserService;
+
+import com.erp.service.*;
 import com.erp.util.AccessTokenUtil;
-import com.erp.util.MessageUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +36,19 @@ public class CallbackController {
     private RoughOrdInfService roughOrdInfService;
     @Autowired
     private RoughOddVaryInfService roughOddVaryInfService;
+    @Autowired
+    private RoughConInfService roughConInfService;
+    @Autowired
+    private RoughOddInfService roughOddInfService;
+    @Autowired
+    private ProjectOddInfService projectOddInfService;
+    @Autowired
+    private PaymentInfService paymentInfService;
+    @Autowired
+    private MaterialOrdInfService materialOrdInfService;
+    @Autowired
+    private MaterialOddInfService materialOddInfService;
+
 
     private static final Logger bizLogger = LoggerFactory.getLogger("BIZ_CALLBACKCONTROLLER");
     private static final Logger mainLogger = LoggerFactory.getLogger(com.erp.controller.CallbackController.class);
@@ -65,6 +72,7 @@ public class CallbackController {
      * 相应钉钉回调时的值
      */
     private static final String CALLBACK_RESPONSE_SUCCESS = "success";
+
 
 
     @RequestMapping(value = "/callback", method = RequestMethod.POST)
@@ -126,16 +134,82 @@ public class CallbackController {
                           }
                           bizLogger.info("-------------------------回写数据库结束--坯布销售订单--------------------------------------");
                         break;
+                    case Constant.PRCESS_CODE_ROUGHODDINF:
+                        //坯布采购订单
+                        bizLogger.info("-------------------------开始回写数据库--坯布采购订单---------------------------------------");
+                        Boolean bool3 = roughOddInfService.returnResult(plainText);
+                        if(bool3){
+                            bizLogger.info("回写数据库成功--坯布采购订单");
+                        }else {
+                            bizLogger.info("回写数据库失败--坯布采购订单");
+                        }
+                        bizLogger.info("-------------------------回写数据库结束--坯布采购订单--------------------------------------");
+                        break;
                     case Constant.PRCESS_CODE_ROUGHODDVARYINF:
                         //坯布采购变更单
                         bizLogger.info("-------------------------开始回写数据库--坯布采购变更单---------------------------------------");
-                        Boolean bool3 = roughOddVaryInfService.returnResult(plainText);
-                        if(bool3){
+                        Boolean bool4 = roughOddVaryInfService.returnResult(plainText);
+                        if(bool4){
                             bizLogger.info("回写数据库成功--坯布采购变更单");
                         }else {
                             bizLogger.info("回写数据库失败--坯布采购变更单");
                         }
                         bizLogger.info("-------------------------回写数据库结束--坯布采购变更单--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_ROUGHCONINF:
+                        //坯布发货通知单
+                        bizLogger.info("-------------------------开始回写数据库--坯布发货通知单---------------------------------------");
+                        Boolean bool5 = roughConInfService.returnResult(plainText);
+                        if(bool5){
+                            bizLogger.info("回写数据库成功--坯布发货通知单");
+                        }else {
+                            bizLogger.info("回写数据库失败--坯布发货通知单");
+                        }
+                        bizLogger.info("-------------------------回写数据库结束--坯布发货通知单--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_PROJECTODDINF:
+                        //工程合同
+                        bizLogger.info("-------------------------开始回写数据库--工程合同---------------------------------------");
+                        Boolean bool6 = projectOddInfService.returnResult(plainText);
+                        if(bool6){
+                            bizLogger.info("回写数据库成功--工程合同");
+                        }else {
+                            bizLogger.info("回写数据库失败--工程合同");
+                        }
+                        bizLogger.info("-------------------------回写数据库结束--工程合同--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_PAYMENTINF:
+                        //付款审批单
+                        bizLogger.info("-------------------------开始回写数据库--付款审批单---------------------------------------");
+                        Boolean bool7 = paymentInfService.returnResult(plainText);
+                        if(bool7){
+                            bizLogger.info("回写数据库成功--付款审批单");
+                        }else {
+                            bizLogger.info("回写数据库失败--付款审批单");
+                        }
+                        bizLogger.info("-------------------------回写数据库结束--付款审批单--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_MATERIALORDINF:
+                        //原料销售订单
+                        bizLogger.info("-------------------------开始回写数据库--原料销售订单---------------------------------------");
+                        Boolean bool8 = materialOrdInfService.returnResult(plainText);
+                        if(bool8){
+                            bizLogger.info("回写数据库成功--原料销售订单");
+                        }else {
+                            bizLogger.info("回写数据库失败--原料销售订单");
+                        }
+                        bizLogger.info("-------------------------回写数据库结束--原料销售订单--------------------------------------");
+                        break;
+                    case Constant.PRCESS_CODE_MATERIALODDINF:
+                        //原料采购订单
+                        bizLogger.info("-------------------------开始回写数据库--原料采购订单---------------------------------------");
+                        Boolean bool9 = materialOddInfService.returnResult(plainText);
+                        if(bool9){
+                            bizLogger.info("回写数据库成功--原料采购订单");
+                        }else {
+                            bizLogger.info("回写数据库失败--原料采购订单");
+                        }
+                        bizLogger.info("-------------------------回写数据库结束--原料采购订单--------------------------------------");
                         break;
                     default:
                         break;

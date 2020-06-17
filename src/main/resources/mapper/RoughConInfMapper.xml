@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.erp.mapper.RoughConInfMapper">
+    <resultMap id="RoughConInfMapper" type="com.erp.model.RoughConInf">
+
+    </resultMap>
+
+    <select id="selectRoughConInfCount" resultType="java.lang.Integer">
+
+    </select>
+
+    <select id="selectApproveUser" resultMap="RoughConInfMapper">
+
+    </select>
+
+    <update id="updateProcessInstanceIdRoughConInf" parameterType="com.erp.model.RoughConInf">
+
+    </update>
+
+    <update id="updateStatusRoughConInf" parameterType="com.erp.model.RoughConInf">
+
+    </update>
+
+
+</mapper>

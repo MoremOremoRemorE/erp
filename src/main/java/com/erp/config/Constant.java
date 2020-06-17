@@ -59,6 +59,26 @@ public class Constant {
      */
     public static final String PRCESS_CODE_ROUGHODDINF ="PROC-0CABEDAD-6A08-449C-BBF5-4D2F8F03AF74";
     /**
+     * 坯布发货通知单
+     */
+    public static final String PRCESS_CODE_ROUGHCONINF ="PROC-3D26B557-BB8E-4D2A-8496-F65609F6B5AF";
+    /**
+     * 工程合同
+     */
+    public static final String PRCESS_CODE_PROJECTODDINF ="PROC-12795937-4432-41B7-A00E-BF2D052E7F22";
+    /**
+     * 付款审批单
+     */
+    public static final String PRCESS_CODE_PAYMENTINF ="PROC-248445D1-245C-4530-921A-485F61DE94DE";
+    /**
+     * 原料销售订单
+     */
+    public static final String PRCESS_CODE_MATERIALORDINF ="PROC-025064EA-B5E5-49C8-B77D-8BD85A79A474";
+    /**
+     * 原料采购订单
+     */
+    public static final String PRCESS_CODE_MATERIALODDINF ="PROC-5AFCA830-F454-4815-8E39-E61D8D8C0F74";
+    /**
      * 回调host
      */
     public static final String CALLBACK_URL_HOST = "http://erpjxc.vaiwan.com";

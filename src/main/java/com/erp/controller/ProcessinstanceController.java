@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.AssertFalse;
 import java.util.List;
 
 
@@ -42,6 +43,16 @@ public class ProcessinstanceController {
 	private RoughOddVaryInfService roughOddVaryInfService;
 	@Autowired
 	private RoughOddInfService roughOddInfService;
+	@Autowired
+	private RoughConInfService roughConInfService;
+	@Autowired
+	private ProjectOddInfService projectOddInfService;
+	@Autowired
+	private PaymentInfService paymentInfService;
+	@Autowired
+	private MaterialOrdInfService materialOrdInfService;
+	@Autowired
+	private MaterialOddInfService materialOddInfService;
 	private static final Logger bizLogger = LoggerFactory.getLogger(com.erp.controller.ProcessinstanceController.class);
 
 	/**
@@ -69,9 +80,18 @@ public class ProcessinstanceController {
 		startProcessInstanceRoughOrdInf();
 		//坯布采购变更单
 		startProcessInstanceRoughOddVaryInf();
-
-
-
+		//坯布采购订单
+		startProcessInstanceRoughOddInf();
+		//坯布发货通知单
+		startProcessInstanceRoughConInf();
+		//工程合同
+		startProcessInstanceProjectOddInf();
+		//付款审批单
+		startProcessInstancePaymentInf();
+		//原料销售订单
+		startProcessInstanceMaterialOrdInf();
+		//原料采购订单
+		startProcessInstanceMaterialOddInf();
 
 //		ExecutorService cachedThreadPool1 = Executors.newCachedThreadPool();
 //		for (int i = 0; i < 10; i++) {
@@ -91,6 +111,8 @@ public class ProcessinstanceController {
 //		}
 		return ServiceResult.success("success");
 	}
+
+
 
 	/**
 	 * 根据审批实例id获取审批详情
@@ -412,6 +434,316 @@ public class ProcessinstanceController {
 				}
 			}else{
 				bizLogger.info("未找到坯布采购订单表中的数据");
+			}
+		}catch (Exception e){
+			String errLog = LogFormatter.getKVLogData(LogEvent.END,
+					LogFormatter.KeyValue.getNew("processInstance", "出错了"));
+			bizLogger.info(errLog,e);
+			return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+		}
+		return ServiceResult.success("success");
+	}
+	/**
+	 * 坯布发货通知单处理
+	 */
+	public ServiceResult<String> startProcessInstanceRoughConInf() {
+		try {
+			DefaultDingTalkClient client = new DefaultDingTalkClient(URLConstant.URL_PROCESSINSTANCE_START);
+			/**
+			 * 在这里查询数据库，从数据库中拿到和钉钉对接的具体的所有人的数据，比如userId，userName，deptId等信息
+			 * 可能需要查询所有的表，判断是否有数据
+			 */
+			//查询坯布采购变更单表中符合条件的数据
+			int count = roughConInfService.selectRoughConInfCount();
+			if(count>0){
+				//查询对应的审核抄送等信息
+				List<RoughConInf> roughConInfList = roughConInfService.selectApproveUser();
+				for(RoughConInf roughConInf:roughConInfList){
+					ProcessInstanceInputVO processInstance = RoughConInfMsg.getProcessInstanceInputVORoughConInf(roughConInf);
+					OapiProcessinstanceCreateRequest request = new OapiProcessinstanceCreateRequest();
+					request.setProcessCode(Constant.PRCESS_CODE_ROUGHCONINF);
+					request.setFormComponentValues(processInstance.generateForms());
+
+					//要和设计的相对应，审批人和抄送人什么的需要在这个进行传参
+					//审批人设置 方闵：2936396644845660
+					//	request.setApprovers("2936396644845660,173940214337028944");
+					request.setApprovers(processInstance.getOriginatorUserId());
+					request.setOriginatorUserId(processInstance.getOriginatorUserId());
+
+					request.setDeptId(processInstance.getDeptId());
+					//前面方闵，后面金超群,测试用
+					//	request.setCcList("2936396644845660,173940214337028944");
+					request.setCcList(processInstance.getOriginatorUserId());
+					request.setCcPosition("FINISH");
+
+					OapiProcessinstanceCreateResponse response = client.execute(request, AccessTokenUtil.getToken());
+
+					if (response.getErrcode().longValue() != 0) {
+						return ServiceResult.failure(String.valueOf(response.getErrorCode()), response.getErrmsg());
+					}
+					RoughConInf roughConInf1 = new RoughConInf();
+					roughConInf1.setProcessInstanceId(response.getProcessInstanceId());
+					//表中唯一确定这条数据的字段，id之类的
+					roughConInf1.setId(roughConInf.getId());
+					//在成功后回写数据库，将唯一的审批实例id写进去
+					int updateProcessInstanceId = roughConInfService.updateProcessInstanceIdRoughConInf(roughConInf1);
+					if(updateProcessInstanceId>0){
+						return ServiceResult.success(response.getProcessInstanceId());
+					}else {
+						return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+					}
+				}
+			}else{
+				bizLogger.info("未找到坯布发货通知单表中的数据");
+			}
+		}catch (Exception e){
+			String errLog = LogFormatter.getKVLogData(LogEvent.END,
+					LogFormatter.KeyValue.getNew("processInstance", "出错了"));
+			bizLogger.info(errLog,e);
+			return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+		}
+		return ServiceResult.success("success");
+	}
+
+	/**
+	 * 工程合同
+	 */
+	public ServiceResult<String> startProcessInstanceProjectOddInf() {
+		try {
+			DefaultDingTalkClient client = new DefaultDingTalkClient(URLConstant.URL_PROCESSINSTANCE_START);
+			/**
+			 * 在这里查询数据库，从数据库中拿到和钉钉对接的具体的所有人的数据，比如userId，userName，deptId等信息
+			 * 可能需要查询所有的表，判断是否有数据
+			 */
+			//查询坯布采购变更单表中符合条件的数据
+			int count = projectOddInfService.selectProjectOddInfCount();
+			if(count>0){
+				//查询对应的审核抄送等信息
+				List<ProjectOddInf> projectOddInfList = projectOddInfService.selectApproveUser();
+				for(ProjectOddInf projectOddInf:projectOddInfList){
+					ProcessInstanceInputVO processInstance = ProjectOddInfMsg.getProcessInstanceInputVOProjectOddInf(projectOddInf);
+					OapiProcessinstanceCreateRequest request = new OapiProcessinstanceCreateRequest();
+					request.setProcessCode(Constant.PRCESS_CODE_PROJECTODDINF);
+					request.setFormComponentValues(processInstance.generateForms());
+
+					//要和设计的相对应，审批人和抄送人什么的需要在这个进行传参
+					//审批人设置 方闵：2936396644845660
+					//	request.setApprovers("2936396644845660,173940214337028944");
+					request.setApprovers(processInstance.getOriginatorUserId());
+					request.setOriginatorUserId(processInstance.getOriginatorUserId());
+
+					request.setDeptId(processInstance.getDeptId());
+					//前面方闵，后面金超群,测试用
+					//	request.setCcList("2936396644845660,173940214337028944");
+					request.setCcList(processInstance.getOriginatorUserId());
+					request.setCcPosition("FINISH");
+
+					OapiProcessinstanceCreateResponse response = client.execute(request, AccessTokenUtil.getToken());
+
+					if (response.getErrcode().longValue() != 0) {
+						return ServiceResult.failure(String.valueOf(response.getErrorCode()), response.getErrmsg());
+					}
+					ProjectOddInf projectOddInf1 = new ProjectOddInf();
+					projectOddInf1.setProcessInstanceId(response.getProcessInstanceId());
+					//表中唯一确定这条数据的字段，id之类的
+					projectOddInf1.setId(projectOddInf.getId());
+					//在成功后回写数据库，将唯一的审批实例id写进去
+					int updateProcessInstanceId = projectOddInfService.updateProcessInstanceIdProjectOddInf(projectOddInf1);
+					if(updateProcessInstanceId>0){
+						return ServiceResult.success(response.getProcessInstanceId());
+					}else {
+						return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+					}
+				}
+			}else{
+				bizLogger.info("未找到工程合同表中的数据");
+			}
+		}catch (Exception e){
+			String errLog = LogFormatter.getKVLogData(LogEvent.END,
+					LogFormatter.KeyValue.getNew("processInstance", "出错了"));
+			bizLogger.info(errLog,e);
+			return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+		}
+		return ServiceResult.success("success");
+	}
+
+	/**
+	 * 付款审批单
+	 */
+	public ServiceResult<String> startProcessInstancePaymentInf() {
+		try {
+			DefaultDingTalkClient client = new DefaultDingTalkClient(URLConstant.URL_PROCESSINSTANCE_START);
+			/**
+			 * 在这里查询数据库，从数据库中拿到和钉钉对接的具体的所有人的数据，比如userId，userName，deptId等信息
+			 * 可能需要查询所有的表，判断是否有数据
+			 */
+			//查询坯布采购变更单表中符合条件的数据
+			int count = paymentInfService.selectPaymentInfCount();
+			if(count>0){
+				//查询对应的审核抄送等信息
+				List<PaymentInf> paymentInfList = paymentInfService.selectApproveUser();
+				for(PaymentInf paymentInf:paymentInfList){
+					ProcessInstanceInputVO processInstance = PaymentInfMsg.getProcessInstanceInputVOPaymentInf(paymentInf);
+					OapiProcessinstanceCreateRequest request = new OapiProcessinstanceCreateRequest();
+					request.setProcessCode(Constant.PRCESS_CODE_PAYMENTINF);
+					request.setFormComponentValues(processInstance.generateForms());
+
+					//要和设计的相对应，审批人和抄送人什么的需要在这个进行传参
+					//审批人设置 方闵：2936396644845660
+					//	request.setApprovers("2936396644845660,173940214337028944");
+					request.setApprovers(processInstance.getOriginatorUserId());
+					request.setOriginatorUserId(processInstance.getOriginatorUserId());
+
+					request.setDeptId(processInstance.getDeptId());
+					//前面方闵，后面金超群,测试用
+					//	request.setCcList("2936396644845660,173940214337028944");
+					request.setCcList(processInstance.getOriginatorUserId());
+					request.setCcPosition("FINISH");
+
+					OapiProcessinstanceCreateResponse response = client.execute(request, AccessTokenUtil.getToken());
+
+					if (response.getErrcode().longValue() != 0) {
+						return ServiceResult.failure(String.valueOf(response.getErrorCode()), response.getErrmsg());
+					}
+					PaymentInf paymentInf1 = new PaymentInf();
+					paymentInf1.setProcessInstanceId(response.getProcessInstanceId());
+					//表中唯一确定这条数据的字段，id之类的
+					paymentInf1.setId(paymentInf.getId());
+					//在成功后回写数据库，将唯一的审批实例id写进去
+					int updateProcessInstanceId = paymentInfService.updateProcessInstanceIdPaymentInf(paymentInf1);
+					if(updateProcessInstanceId>0){
+						return ServiceResult.success(response.getProcessInstanceId());
+					}else {
+						return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+					}
+				}
+			}else{
+				bizLogger.info("未找到付款审批单表中的数据");
+			}
+		}catch (Exception e){
+			String errLog = LogFormatter.getKVLogData(LogEvent.END,
+					LogFormatter.KeyValue.getNew("processInstance", "出错了"));
+			bizLogger.info(errLog,e);
+			return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+		}
+		return ServiceResult.success("success");
+	}
+
+	/**
+	 * 原料销售订单
+	 */
+	public ServiceResult<String> startProcessInstanceMaterialOrdInf() {
+		try {
+			DefaultDingTalkClient client = new DefaultDingTalkClient(URLConstant.URL_PROCESSINSTANCE_START);
+			/**
+			 * 在这里查询数据库，从数据库中拿到和钉钉对接的具体的所有人的数据，比如userId，userName，deptId等信息
+			 * 可能需要查询所有的表，判断是否有数据
+			 */
+			//查询坯布采购变更单表中符合条件的数据
+			int count = materialOrdInfService.selectMaterialOrdInfCount();
+			if(count>0){
+				//查询对应的审核抄送等信息
+				List<MaterialOrdInf> materialOrdInfList = materialOrdInfService.selectApproveUser();
+				for(MaterialOrdInf materialOrdInf:materialOrdInfList){
+					ProcessInstanceInputVO processInstance = MaterialOrdInfMsg.getProcessInstanceInputVOMaterialOrdInf(materialOrdInf);
+					OapiProcessinstanceCreateRequest request = new OapiProcessinstanceCreateRequest();
+					request.setProcessCode(Constant.PRCESS_CODE_MATERIALORDINF);
+					request.setFormComponentValues(processInstance.generateForms());
+
+					//要和设计的相对应，审批人和抄送人什么的需要在这个进行传参
+					//审批人设置 方闵：2936396644845660
+					//	request.setApprovers("2936396644845660,173940214337028944");
+					request.setApprovers(processInstance.getOriginatorUserId());
+					request.setOriginatorUserId(processInstance.getOriginatorUserId());
+
+					request.setDeptId(processInstance.getDeptId());
+					//前面方闵，后面金超群,测试用
+					//	request.setCcList("2936396644845660,173940214337028944");
+					request.setCcList(processInstance.getOriginatorUserId());
+					request.setCcPosition("FINISH");
+
+					OapiProcessinstanceCreateResponse response = client.execute(request, AccessTokenUtil.getToken());
+
+					if (response.getErrcode().longValue() != 0) {
+						return ServiceResult.failure(String.valueOf(response.getErrorCode()), response.getErrmsg());
+					}
+					MaterialOrdInf materialOrdInf1 = new MaterialOrdInf();
+					materialOrdInf1.setProcessInstanceId(response.getProcessInstanceId());
+					//表中唯一确定这条数据的字段，id之类的
+					materialOrdInf1.setId(materialOrdInf.getId());
+					//在成功后回写数据库，将唯一的审批实例id写进去
+					int updateProcessInstanceId = materialOrdInfService.updateProcessInstanceIdMaterialOrdInf(materialOrdInf1);
+					if(updateProcessInstanceId>0){
+						return ServiceResult.success(response.getProcessInstanceId());
+					}else {
+						return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+					}
+				}
+			}else{
+				bizLogger.info("未找到付款审批单表中的数据");
+			}
+		}catch (Exception e){
+			String errLog = LogFormatter.getKVLogData(LogEvent.END,
+					LogFormatter.KeyValue.getNew("processInstance", "出错了"));
+			bizLogger.info(errLog,e);
+			return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+		}
+		return ServiceResult.success("success");
+	}
+
+
+	/**
+	 * 原料采购订单
+	 */
+	public ServiceResult<String> startProcessInstanceMaterialOddInf() {
+		try {
+			DefaultDingTalkClient client = new DefaultDingTalkClient(URLConstant.URL_PROCESSINSTANCE_START);
+			/**
+			 * 在这里查询数据库，从数据库中拿到和钉钉对接的具体的所有人的数据，比如userId，userName，deptId等信息
+			 * 可能需要查询所有的表，判断是否有数据
+			 */
+			//查询坯布采购变更单表中符合条件的数据
+			int count = materialOddInfService.selectMaterialOddInfCount();
+			if(count>0){
+				//查询对应的审核抄送等信息
+				List<MaterialOddInf> materialOddInfList = materialOddInfService.selectApproveUser();
+				for(MaterialOddInf materialOddInf:materialOddInfList){
+					ProcessInstanceInputVO processInstance = MaterialOddInfMsg.getProcessInstanceInputVOMaterialOddInf(materialOddInf);
+					OapiProcessinstanceCreateRequest request = new OapiProcessinstanceCreateRequest();
+					request.setProcessCode(Constant.PRCESS_CODE_MATERIALODDINF);
+					request.setFormComponentValues(processInstance.generateForms());
+
+					//要和设计的相对应，审批人和抄送人什么的需要在这个进行传参
+					//审批人设置 方闵：2936396644845660
+					//	request.setApprovers("2936396644845660,173940214337028944");
+					request.setApprovers(processInstance.getOriginatorUserId());
+					request.setOriginatorUserId(processInstance.getOriginatorUserId());
+
+					request.setDeptId(processInstance.getDeptId());
+					//前面方闵，后面金超群,测试用
+					//	request.setCcList("2936396644845660,173940214337028944");
+					request.setCcList(processInstance.getOriginatorUserId());
+					request.setCcPosition("FINISH");
+
+					OapiProcessinstanceCreateResponse response = client.execute(request, AccessTokenUtil.getToken());
+
+					if (response.getErrcode().longValue() != 0) {
+						return ServiceResult.failure(String.valueOf(response.getErrorCode()), response.getErrmsg());
+					}
+					MaterialOddInf materialOddInf1 = new MaterialOddInf();
+					materialOddInf1.setProcessInstanceId(response.getProcessInstanceId());
+					//表中唯一确定这条数据的字段，id之类的
+					materialOddInf1.setId(materialOddInf.getId());
+					//在成功后回写数据库，将唯一的审批实例id写进去
+					int updateProcessInstanceId = materialOddInfService.updateProcessInstanceIdMaterialOddInf(materialOddInf1);
+					if(updateProcessInstanceId>0){
+						return ServiceResult.success(response.getProcessInstanceId());
+					}else {
+						return ServiceResult.failure(ServiceResultCode.SYS_ERROR.getErrCode(),ServiceResultCode.SYS_ERROR.getErrMsg());
+					}
+				}
+			}else{
+				bizLogger.info("未找到付款审批单表中的数据");
 			}
 		}catch (Exception e){
 			String errLog = LogFormatter.getKVLogData(LogEvent.END,

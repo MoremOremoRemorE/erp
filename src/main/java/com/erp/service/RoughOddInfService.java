@@ -10,4 +10,8 @@ public interface  RoughOddInfService {
     List<RoughOddInf> selectApproveUser();
 
     int updateProcessInstanceIdRoughOddInf(RoughOddInf roughOddInf1);
+
+    Boolean returnResult(String plainText);
+
+    int updateStatusRoughOddInf(RoughOddInf roughOddInf);
 }

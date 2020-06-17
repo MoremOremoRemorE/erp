@@ -1,145 +1,143 @@
 package com.erp.model.FormMsg;
 
 import com.erp.model.ProcessInstanceInputVO;
-import com.erp.model.RoughOddVaryInf;
+import com.erp.model.RoughConInf;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 坯布采购变更单模板数据项
+ * 坯布采购订单模板
  */
-public class RoughOddVaryInfMsg {
-    /**
-     * 坯布采购变更单模板
-     * @param roughOddVaryInf
-     * @return
-     */
-    public static ProcessInstanceInputVO getProcessInstanceInputVORoughOddVaryInf(RoughOddVaryInf roughOddVaryInf) {
+public class RoughConInfMsg {
+
+    public static ProcessInstanceInputVO getProcessInstanceInputVORoughConInf(RoughConInf roughConInf) {
         ProcessInstanceInputVO processInstance = new ProcessInstanceInputVO();
 
         List<ProcessInstanceInputVO.TextForm> textForms = new ArrayList<>();
         //审核人部门id
-        processInstance.setDeptId(roughOddVaryInf.getDeptId());
+        processInstance.setDeptId(roughConInf.getDeptId());
         //审核发起人userid
-        processInstance.setOriginatorUserId(roughOddVaryInf.getUserId());
+        processInstance.setOriginatorUserId(roughConInf.getUserId());
 
         ProcessInstanceInputVO.TextForm textForm = new ProcessInstanceInputVO.TextForm();
         textForm.setName("版本号");
-        textForm.setValue(roughOddVaryInf.getVersion().toString());
+        textForm.setValue(roughConInf.getVersion().toString());
 
         ProcessInstanceInputVO.TextForm textForm1 = new ProcessInstanceInputVO.TextForm();
-        textForm1.setName("单据编号");
-        textForm1.setValue(roughOddVaryInf.getDh());
+        textForm.setName("单据编号");
+        textForm.setValue(roughConInf.getDh());
 
         ProcessInstanceInputVO.TextForm textForm2 = new ProcessInstanceInputVO.TextForm();
-        textForm2.setName("制单日期");
-        textForm2.setValue(roughOddVaryInf.getRq());
+        textForm.setName("制单日期");
+        textForm.setValue(roughConInf.getRq());
 
         ProcessInstanceInputVO.TextForm textForm3 = new ProcessInstanceInputVO.TextForm();
-        textForm3.setName("供应商名称");
-        textForm3.setValue(roughOddVaryInf.getCltName());
+        textForm.setName("客户名称");
+        textForm.setValue(roughConInf.getCltName());
 
         ProcessInstanceInputVO.TextForm textForm4 = new ProcessInstanceInputVO.TextForm();
-        textForm4.setName("经办人");
-        textForm4.setValue(roughOddVaryInf.getEmplName());
+        textForm.setName("业务员");
+        textForm.setValue(roughConInf.getEmplName());
 
         ProcessInstanceInputVO.TextForm textForm5 = new ProcessInstanceInputVO.TextForm();
-        textForm5.setName("制单人");
-        textForm5.setValue(roughOddVaryInf.getCrtorName());
+        textForm.setName("制单人");
+        textForm.setValue(roughConInf.getCrtorName());
 
         ProcessInstanceInputVO.TextForm textForm6 = new ProcessInstanceInputVO.TextForm();
-        textForm6.setName("制单时间");
-        textForm6.setValue(roughOddVaryInf.getCrtorDT());
+        textForm.setName("制单时间");
+        textForm.setValue(roughConInf.getCrtorDT());
 
         ProcessInstanceInputVO.TextForm textForm7 = new ProcessInstanceInputVO.TextForm();
-        textForm7.setName("修改人");
-        textForm7.setValue(roughOddVaryInf.getMdferName());
+        textForm.setName("修改人");
+        textForm.setValue(roughConInf.getMdferName());
 
         ProcessInstanceInputVO.TextForm textForm8 = new ProcessInstanceInputVO.TextForm();
-        textForm8.setName("修改时间");
-        textForm8.setValue(roughOddVaryInf.getMdfDT());
+        textForm.setName("修改时间");
+        textForm.setValue(roughConInf.getMdfDT());
 
         ProcessInstanceInputVO.TextForm textForm9 = new ProcessInstanceInputVO.TextForm();
-        textForm9.setName("单据状态");
-        textForm9.setValue(roughOddVaryInf.getState());
+        textForm.setName("单据状态");
+        textForm.setValue(roughConInf.getState());
 
         ProcessInstanceInputVO.TextForm textForm10 = new ProcessInstanceInputVO.TextForm();
-        textForm10.setName("备注");
-        textForm10.setValue(roughOddVaryInf.getRemark());
+        textForm.setName("备注");
+        textForm.setValue(roughConInf.getRemark());
 
         //明细部分
         ProcessInstanceInputVO.TextForm textForm11 = new ProcessInstanceInputVO.TextForm();
-        textForm11.setName("成品编码");
-        textForm11.setValue(roughOddVaryInf.getProductCode());
+        textForm.setName("成品编码");
+        textForm.setValue(roughConInf.getProductCode());
 
         ProcessInstanceInputVO.TextForm textForm12 = new ProcessInstanceInputVO.TextForm();
-        textForm12.setName("成品名称");
-        textForm12.setValue(roughOddVaryInf.getProductName());
+        textForm.setName("成品名称");
+        textForm.setValue(roughConInf.getProductName());
 
         ProcessInstanceInputVO.TextForm textForm13 = new ProcessInstanceInputVO.TextForm();
-        textForm13.setName("供应商品");
-        textForm13.setValue(roughOddVaryInf.getSupplyName());
+        textForm.setName("客户品名");
+        textForm.setValue(roughConInf.getProName());
 
         ProcessInstanceInputVO.TextForm textForm14 = new ProcessInstanceInputVO.TextForm();
-        textForm14.setName("批号");
-        textForm14.setValue(roughOddVaryInf.getBatch());
+        textForm.setName("批号");
+        textForm.setValue(roughConInf.getBatch());
 
         ProcessInstanceInputVO.TextForm textForm15 = new ProcessInstanceInputVO.TextForm();
-        textForm15.setName("规格");
-        textForm15.setValue(roughOddVaryInf.getSpec());
+        textForm.setName("规格");
+        textForm.setValue(roughConInf.getSpec());
 
         ProcessInstanceInputVO.TextForm textForm16 = new ProcessInstanceInputVO.TextForm();
-        textForm16.setName("等级");
-        textForm16.setValue(roughOddVaryInf.getLeve());
+        textForm.setName("等级");
+        textForm.setValue(roughConInf.getLeve());
 
         ProcessInstanceInputVO.TextForm textForm17 = new ProcessInstanceInputVO.TextForm();
-        textForm17.setName("计价单位");
-        textForm17.setValue(roughOddVaryInf.getJjUnitName());
+        textForm.setName("克重");
+        textForm.setValue(roughConInf.getFaw());
 
         ProcessInstanceInputVO.TextForm textForm18 = new ProcessInstanceInputVO.TextForm();
-        textForm18.setName("计价数量");
-        textForm18.setValue(roughOddVaryInf.getJjQty().toString());
+        textForm.setName("板号");
+        textForm.setValue(roughConInf.getRoPrmtr4());
 
         ProcessInstanceInputVO.TextForm textForm19 = new ProcessInstanceInputVO.TextForm();
-        textForm19.setName("单位");
-        textForm19.setValue(roughOddVaryInf.getUnitName());
+        textForm.setName("幅宽");
+        textForm.setValue(roughConInf.getRoPrmtr2());
 
         ProcessInstanceInputVO.TextForm textForm20 = new ProcessInstanceInputVO.TextForm();
-        textForm20.setName("数量");
-        textForm20.setValue(roughOddVaryInf.getQty().toString());
+        textForm.setName("轴号");
+        textForm.setValue(roughConInf.getRoPrmtr3());
 
         ProcessInstanceInputVO.TextForm textForm21 = new ProcessInstanceInputVO.TextForm();
-        textForm21.setName("交货日期");
-        textForm21.setValue(roughOddVaryInf.getDeliveryDT());
+        textForm.setName("计价单位");
+        textForm.setValue(roughConInf.getJjUnitName());
 
         ProcessInstanceInputVO.TextForm textForm22 = new ProcessInstanceInputVO.TextForm();
-        textForm22.setName("备注");
-        textForm22.setValue(roughOddVaryInf.getRemarkC());
+        textForm.setName("计价数量");
+        textForm.setValue(roughConInf.getJjQty().toString());
 
         ProcessInstanceInputVO.TextForm textForm23 = new ProcessInstanceInputVO.TextForm();
-        textForm23.setName("变更计价数量");
-        textForm23.setValue(roughOddVaryInf.getJjQtyV().toString());
+        textForm.setName("单位");
+        textForm.setValue(roughConInf.getUnitName());
 
         ProcessInstanceInputVO.TextForm textForm24 = new ProcessInstanceInputVO.TextForm();
-        textForm24.setName("变更数量");
-        textForm24.setValue(roughOddVaryInf.getQtyV().toString());
+        textForm.setName("数量");
+        textForm.setValue(roughConInf.getQty2().toString());
 
         ProcessInstanceInputVO.TextForm textForm25 = new ProcessInstanceInputVO.TextForm();
-        textForm25.setName("变更件数");
-        textForm25.setValue(roughOddVaryInf.getPQtyV().toString());
+        textForm.setName("税率");
+        textForm.setValue(roughConInf.getTaxRate().toString());
 
         ProcessInstanceInputVO.TextForm textForm26 = new ProcessInstanceInputVO.TextForm();
-        textForm26.setName("变更时间");
-        textForm26.setValue(roughOddVaryInf.getDeliveryDTV());
+        textForm.setName("单价");
+        textForm.setValue(roughConInf.getPrice().toString());
 
         ProcessInstanceInputVO.TextForm textForm27 = new ProcessInstanceInputVO.TextForm();
-        textForm27.setName("变更原因");
-        textForm27.setValue(roughOddVaryInf.getVaryReason());
+        textForm.setName("选择单号");
+        textForm.setValue(roughConInf.getBarDh());
 
         ProcessInstanceInputVO.TextForm textForm28 = new ProcessInstanceInputVO.TextForm();
-        textForm28.setName("选择单号");
-        textForm28.setValue(roughOddVaryInf.getBarDh());
+        textForm.setName("备注");
+        textForm.setValue(roughConInf.getRemarkC());
+
+
 
 		/*textForm.setName("[\\\"开始时间\\\",\\\"结束时间\\\"]");
 		//处理时间控件的问题
@@ -182,4 +180,5 @@ public class RoughOddVaryInfMsg {
         processInstance.setTextForms(textForms);
         return processInstance;
     }
+
 }

@@ -11,4 +11,6 @@ public interface RoughOddInfMapper {
     List<RoughOddInf> selectApproveUser();
 
     int updateProcessInstanceIdRoughOddInf(RoughOddInf roughOddInf);
+
+    int updateStatusRoughOddInf(RoughOddInf roughOddInf);
 }
